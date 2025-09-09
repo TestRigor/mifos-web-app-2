@@ -51,6 +51,8 @@ export class AuthenticationService {
   private oAuthTokenDetailsStorageKey = 'mifosXOAuthTokenDetails';
   /** Key to store two factor authentication token in storage. */
   private twoFactorAuthenticationTokenStorageKey = 'mifosXTwoFactorAuthenticationToken';
+  /** Key to store login success flag in storage. */
+  private loginSuccessStorageKey = 'mifosXLoginSuccess';
 
   /**
    * Initializes the type of storage and authorization headers depending on whether
@@ -213,9 +215,11 @@ export class AuthenticationService {
         });
       } else {
         this.setCredentials(credentials);
+        // Set a flag to indicate successful login for display on home page
+        sessionStorage.setItem(this.loginSuccessStorageKey, 'true');
         this.alertService.alert({
           type: 'Authentication Success',
-          message: `${credentials.username} successfully logged in!`
+          message: 'Successfully signed in'
         });
         delete this.credentials;
       }
@@ -309,7 +313,23 @@ export class AuthenticationService {
       this.storage.removeItem(this.credentialsStorageKey);
       this.storage.removeItem(this.oAuthTokenDetailsStorageKey);
       this.storage.removeItem(this.twoFactorAuthenticationTokenStorageKey);
+      sessionStorage.removeItem(this.loginSuccessStorageKey);
     }
+  }
+
+  /**
+   * Checks if login was recently successful and should show success message.
+   * @returns {boolean} True if login success message should be displayed.
+   */
+  shouldShowLoginSuccessMessage(): boolean {
+    return sessionStorage.getItem(this.loginSuccessStorageKey) === 'true';
+  }
+
+  /**
+   * Clears the login success flag.
+   */
+  clearLoginSuccessFlag(): void {
+    sessionStorage.removeItem(this.loginSuccessStorageKey);
   }
 
   public saveZitadelCredentials(credentials: Credentials): void {
@@ -385,9 +405,11 @@ export class AuthenticationService {
       });
     } else {
       this.setCredentials(this.credentials);
+      // Set a flag to indicate successful login for display on home page
+      sessionStorage.setItem(this.loginSuccessStorageKey, 'true');
       this.alertService.alert({
         type: 'Authentication Success',
-        message: `${this.credentials.username} successfully logged in!`
+        message: 'Successfully signed in'
       });
       delete this.credentials;
       this.storage.setItem(this.twoFactorAuthenticationTokenStorageKey, JSON.stringify(response));

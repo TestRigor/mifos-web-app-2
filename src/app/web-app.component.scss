@@ -1,0 +1,12 @@
+::ng-deep .success-snackbar {
+  background-color: #4caf50 !important;
+  color: white !important;
+  font-weight: 500 !important;
+  font-size: 16px !important;
+  z-index: 10000 !important;
+}
+
+::ng-deep .success-snackbar .mat-mdc-snack-bar-action {
+  color: white !important;
+  font-weight: bold !important;
+}

@@ -39,6 +39,7 @@ import { GlAccountTreeService } from './gl-account-tree.service';
 import { PopoverService } from '../../configuration-wizard/popover/popover.service';
 import { ConfigurationWizardService } from '../../configuration-wizard/configuration-wizard.service';
 import { TreeControlService } from 'app/shared/common-logic/tree-control.service';
+import { AlertService } from '../../core/alert/alert.service';
 import { MatButtonToggleGroup, MatButtonToggle } from '@angular/material/button-toggle';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { MatButton, MatIconButton } from '@angular/material/button';
@@ -104,6 +105,8 @@ export class ChartOfAccountsComponent implements AfterViewInit, OnInit {
   glAccount: GLAccountNode;
   /** Flag to check if tree is expanded or collapsed. */
   isTreeExpanded = true;
+  /** Success message to display */
+  successMessage: string | null = null;
 
   /** Paginator for chart of accounts table. */
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
@@ -133,7 +136,8 @@ export class ChartOfAccountsComponent implements AfterViewInit, OnInit {
     private router: Router,
     private treeControlService: TreeControlService,
     private configurationWizardService: ConfigurationWizardService,
-    private popoverService: PopoverService
+    private popoverService: PopoverService,
+    private alertService: AlertService
   ) {
     this.route.data.subscribe((data: { chartOfAccounts: any }) => {
       this.glAccountData = data.chartOfAccounts;
@@ -153,6 +157,17 @@ export class ChartOfAccountsComponent implements AfterViewInit, OnInit {
       this.nestedTreeControl.expand(this.nestedTreeDataSource.data[0]);
       this.nestedTreeControl.dataNodes = glAccountTreeData;
     });
+    
+    // Check for success message in session storage
+    if (sessionStorage.getItem('glAccountCreated') === 'true') {
+      this.successMessage = 'Account Created Successfully';
+      // Clear the flag from session storage
+      sessionStorage.removeItem('glAccountCreated');
+      // Clear the message after a few seconds
+      setTimeout(() => {
+        this.successMessage = null;
+      }, 5000);
+    }
   }
 
   /**

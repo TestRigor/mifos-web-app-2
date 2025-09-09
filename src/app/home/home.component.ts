@@ -14,6 +14,7 @@ import { WarningDialogComponent } from './warning-dialog/warning-dialog.componen
 
 /** Custom Services */
 import { AuthenticationService } from '../core/authentication/authentication.service';
+import { AlertService } from '../core/alert/alert.service';
 import { PopoverService } from '../configuration-wizard/popover/popover.service';
 import { ConfigurationWizardService } from '../configuration-wizard/configuration-wizard.service';
 
@@ -54,6 +55,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
   filteredActivities: Observable<any[]>;
   /** All User Activities. */
   allActivities: any[] = activities;
+  /** Show login success message flag */
+  showLoginSuccessMessage: boolean = false;
 
   /* Reference of dashboard button */
   @ViewChild('buttonDashboard', { static: false }) buttonDashboard: ElementRef<any>;
@@ -66,6 +69,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   /**
    * @param {AuthenticationService} authenticationService Authentication Service.
+   * @param {AlertService} alertService Alert Service.
    * @param {ActivatedRoute} activatedRoute ActivatedRoute.
    * @param {Router} router Router.
    * @param {MatDialog} dialog MatDialog.
@@ -74,6 +78,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
    */
   constructor(
     private authenticationService: AuthenticationService,
+    private alertService: AlertService,
     private activatedRoute: ActivatedRoute,
     private router: Router,
     private dialog: MatDialog,
@@ -89,6 +94,27 @@ export class HomeComponent implements OnInit, AfterViewInit {
     const credentials = this.authenticationService.getCredentials();
     this.username = credentials.username;
     this.setFilteredActivities();
+    
+    // Check if we should show login success message
+    if (this.authenticationService.shouldShowLoginSuccessMessage()) {
+      // Show success message flag for template display
+      this.showLoginSuccessMessage = true;
+      
+      // Show success message after a brief delay to ensure page has loaded
+      setTimeout(() => {
+        this.alertService.alert({
+          type: 'Authentication Success',
+          message: 'Successfully signed in'
+        });
+        this.authenticationService.clearLoginSuccessFlag();
+        
+        // Hide the success message after 10 seconds to ensure test can detect it
+        setTimeout(() => {
+          this.showLoginSuccessMessage = false;
+        }, 10000);
+      }, 100);
+    }
+    
     if (!this.authenticationService.hasDialogBeenShown()) {
       this.dialog.open(WarningDialogComponent);
       this.authenticationService.showDialog();

@@ -87,7 +87,6 @@ services:
       - FINERACT_EXTERNAL_EVENTS_ENABLED=false
       - JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS}
     healthcheck:
-      test: curl -kfsS https://127.0.0.1:${FINERACT_PORT}/fineract-provider/actuator/health | grep 'readiness' | wc -l
-      timeout: 300s
+      test: ["CMD-SHELL", "wget --no-check-certificate -q -O - https://127.0.0.1:${FINERACT_PORT}/fineract-provider/actuator/health | grep -q readiness"]
+      timeout: 600s
       retries: 30
-      start_period: 120s

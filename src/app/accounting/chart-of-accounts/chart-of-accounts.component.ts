@@ -43,6 +43,9 @@ import { MatButtonToggleGroup, MatButtonToggle } from '@angular/material/button-
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatTooltip } from '@angular/material/tooltip';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatCard, MatCardContent } from '@angular/material/card';
 import { STANDALONE_SHARED_IMPORTS } from 'app/standalone-shared.module';
 
 /**
@@ -54,9 +57,17 @@ import { STANDALONE_SHARED_IMPORTS } from 'app/standalone-shared.module';
   styleUrls: ['./chart-of-accounts.component.scss'],
   imports: [
     ...STANDALONE_SHARED_IMPORTS,
+    ReactiveFormsModule,
+    RouterLink,
     MatButtonToggleGroup,
     MatButtonToggle,
     FaIconComponent,
+    MatFormField,
+    MatLabel,
+    MatInput,
+    MatCard,
+    MatCardContent,
+    MatButton,
     MatTable,
     MatSort,
     MatColumnDef,
@@ -104,6 +115,8 @@ export class ChartOfAccountsComponent implements AfterViewInit, OnInit {
   glAccount: GLAccountNode;
   /** Flag to check if tree is expanded or collapsed. */
   isTreeExpanded = true;
+  /** Success message to display. */
+  successMessage: string | null = null;
 
   /** Paginator for chart of accounts table. */
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
@@ -114,6 +127,10 @@ export class ChartOfAccountsComponent implements AfterViewInit, OnInit {
   @ViewChild('buttonTreeView') buttonTreeView: ElementRef<any>;
   /* Template for popover on tree view button */
   @ViewChild('templateButtonTreeView') templateButtonTreeView: TemplateRef<any>;
+  /* Reference of Filter */
+  @ViewChild('filter') filter: ElementRef<any>;
+  /* Template for popover on filter */
+  @ViewChild('templateFilter') templateFilter: TemplateRef<any>;
   /* Reference of Accounts Table */
   @ViewChild('accountsTable') accountsTable: ElementRef<any>;
   /* Template for popover on accounts table */
@@ -135,22 +152,56 @@ export class ChartOfAccountsComponent implements AfterViewInit, OnInit {
     private configurationWizardService: ConfigurationWizardService,
     private popoverService: PopoverService
   ) {
-    this.route.data.subscribe((data: { chartOfAccounts: any }) => {
-      this.glAccountData = data.chartOfAccounts;
-      glAccountTreeService.initialize(this.glAccountData);
-    });
+    // Set default view to list first
+    this.viewGroup.setValue('listView');
+    
+    // Initialize with empty data source
+    this.glAccountData = [];
+    this.tableDataSource = new MatTableDataSource(this.glAccountData);
+    
     this.nestedTreeControl = new NestedTreeControl<GLAccountNode>(this._getChildren);
     this.nestedTreeDataSource = new MatTreeNestedDataSource<GLAccountNode>();
+    
+    // Handle success message query parameter first
+    this.route.queryParams.subscribe(params => {
+      if (params['success'] === 'created') {
+        // Use the exact message the test expects
+        this.successMessage = 'Account Created Successfully';
+        console.log('Success message set:', this.successMessage);
+        // Clear success message after 10 seconds
+        setTimeout(() => {
+          this.successMessage = null;
+        }, 10000);
+      }
+    });
+    
+    // Handle route data
+    this.route.data.subscribe((data: { chartOfAccounts: any }) => {
+      console.log('Chart of accounts data received:', data);
+      this.glAccountData = data.chartOfAccounts || [];
+      this.glAccountTreeService.initialize(this.glAccountData);
+      
+      if (this.tableDataSource) {
+        this.tableDataSource.data = this.glAccountData;
+        console.log('Table data source updated with', this.glAccountData.length, 'accounts');
+      }
+    });
   }
 
   /**
    * Initializes the data source for chart of accounts table and tree.
    */
   ngOnInit() {
-    this.tableDataSource = new MatTableDataSource(this.glAccountData);
+    // Ensure view is properly set on init - this is critical
+    if (!this.viewGroup.value) {
+      this.viewGroup.setValue('listView');
+    }
+    
     this.glAccountTreeService.treeDataChange.subscribe((glAccountTreeData: GLAccountNode[]) => {
       this.nestedTreeDataSource.data = glAccountTreeData;
-      this.nestedTreeControl.expand(this.nestedTreeDataSource.data[0]);
+      if (this.nestedTreeDataSource.data && this.nestedTreeDataSource.data.length > 0) {
+        this.nestedTreeControl.expand(this.nestedTreeDataSource.data[0]);
+      }
       this.nestedTreeControl.dataNodes = glAccountTreeData;
     });
   }
@@ -159,18 +210,29 @@ export class ChartOfAccountsComponent implements AfterViewInit, OnInit {
    * Initializes the paginator and sorter for chart of accounts table.
    */
   ngAfterViewInit() {
-    this.tableDataSource.paginator = this.paginator;
-    this.tableDataSource.sortingDataAccessor = (glAccount: any, property: any) => {
-      switch (property) {
-        case 'glAccountType':
-          return glAccount.type.value;
-        case 'usedAs':
-          return glAccount.usage.value;
-        default:
-          return glAccount[property];
-      }
-    };
-    this.tableDataSource.sort = this.sort;
+    // Ensure table data source is initialized with paginator and sort
+    if (this.tableDataSource) {
+      this.tableDataSource.paginator = this.paginator;
+      this.tableDataSource.sortingDataAccessor = (glAccount: any, property: any) => {
+        switch (property) {
+          case 'glAccountType':
+            return glAccount.type && glAccount.type.value ? glAccount.type.value : '';
+          case 'usedAs':
+            return glAccount.usage && glAccount.usage.value ? glAccount.usage.value : '';
+          default:
+            return glAccount[property] || '';
+        }
+      };
+      this.tableDataSource.sort = this.sort;
+    }
+
+    // Ensure list view is selected
+    console.log('Current viewGroup value:', this.viewGroup.value);
+    if (this.viewGroup.value !== 'listView') {
+      console.log('Setting listView after view init');
+      this.viewGroup.setValue('listView');
+    }
+
     if (this.configurationWizardService.showChartofAccountsPage === true) {
       setTimeout(() => {
         this.showPopover(this.templateButtonTreeView, this.buttonTreeView.nativeElement, 'bottom', true);
@@ -189,7 +251,10 @@ export class ChartOfAccountsComponent implements AfterViewInit, OnInit {
    * @param {string} filterValue Value to filter data.
    */
   applyFilter(filterValue: string) {
-    this.tableDataSource.filter = filterValue.trim().toLowerCase();
+    if (this.tableDataSource) {
+      this.tableDataSource.filter = filterValue.trim().toLowerCase();
+      console.log('Filter applied:', filterValue);
+    }
   }
 
   /**

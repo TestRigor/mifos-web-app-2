@@ -52,3 +52,36 @@ table {
 .manual-entries-not-allowed {
   color: #f44366;
 }
+
+.success-message {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.25rem;
+  
+  .success-content {
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    
+    .success-icon {
+      color: #28a745;
+      margin-right: 0.5rem;
+      font-size: 1.2rem;
+    }
+  }
+}
+
+.no-data-message {
+  padding: 2rem;
+  text-align: center;
+  color: #6c757d;
+  font-size: 1.1rem;
+  
+  p {
+    margin: 0;
+    font-weight: 500;
+  }
+}

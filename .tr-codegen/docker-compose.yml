@@ -88,5 +88,6 @@ services:
       - JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS}
     healthcheck:
       test: curl -kfsS https://127.0.0.1:${FINERACT_PORT}/fineract-provider/actuator/health | grep 'readiness' | wc -l
-      timeout: 10s
-      retries: 10
+      timeout: 300s
+      retries: 30
+      start_period: 120s

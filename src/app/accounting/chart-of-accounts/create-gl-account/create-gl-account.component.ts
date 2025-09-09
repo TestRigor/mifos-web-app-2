@@ -169,11 +169,8 @@ export class CreateGlAccountComponent implements OnInit, AfterViewInit {
         this.openDialog();
       } else {
         this.router.navigate(
-          [
-            '../view',
-            response.resourceId
-          ],
-          { relativeTo: this.route }
+          ['/accounting/chart-of-accounts'],
+          { queryParams: { success: 'created' } }
         );
       }
     });

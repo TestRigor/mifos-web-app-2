@@ -8,6 +8,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { AccountingService } from '../../accounting.service';
 import { PopoverService } from '../../../configuration-wizard/popover/popover.service';
 import { ConfigurationWizardService } from '../../../configuration-wizard/configuration-wizard.service';
+import { AccountCreationSuccessService } from '../account-creation-success.service';
 
 /** Custom Dialog Component */
 import { ContinueSetupDialogComponent } from '../../../configuration-wizard/continue-setup-dialog/continue-setup-dialog.component';
@@ -73,7 +74,8 @@ export class CreateGlAccountComponent implements OnInit, AfterViewInit {
     private router: Router,
     private configurationWizardService: ConfigurationWizardService,
     private popoverService: PopoverService,
-    public dialog: MatDialog
+    public dialog: MatDialog,
+    private accountCreationSuccessService: AccountCreationSuccessService
   ) {
     this.route.queryParamMap.subscribe((params) => {
       this.accountTypeId = Number(params.get('accountType'));
@@ -164,6 +166,9 @@ export class CreateGlAccountComponent implements OnInit, AfterViewInit {
    */
   submit() {
     this.accountingService.createGlAccount(this.glAccountForm.value).subscribe((response: any) => {
+      // Mark that an account was successfully created
+      this.accountCreationSuccessService.markAccountCreated();
+      
       if (this.configurationWizardService.showChartofAccounts === true) {
         this.configurationWizardService.showChartofAccounts = false;
         this.openDialog();
@@ -173,7 +178,9 @@ export class CreateGlAccountComponent implements OnInit, AfterViewInit {
             '../view',
             response.resourceId
           ],
-          { relativeTo: this.route }
+          { 
+            relativeTo: this.route
+          }
         );
       }
     });

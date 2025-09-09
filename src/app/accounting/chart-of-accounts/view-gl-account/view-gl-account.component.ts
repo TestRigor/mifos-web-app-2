@@ -79,6 +79,8 @@ export class ViewGlAccountComponent {
   }
 
   goBack(): void {
+    // Navigate back to chart of accounts
+    // The success state is now handled via localStorage persistence
     this.router.navigateByUrl('/accounting/chart-of-accounts');
   }
 }

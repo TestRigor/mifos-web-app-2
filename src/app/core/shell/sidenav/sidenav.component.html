@@ -131,6 +131,18 @@
           <a matLine>{{ 'labels.menus.Notifications' | translate }}</a>
         </mat-list-item>
         <mat-list-item
+          [routerLink]="['/accounting']"
+          [matTooltipPosition]="tooltipPosition"
+          matTooltip="{{ 'tooltips.Accounting' | translate }}"
+          routerLinkActive="active-menu"
+          [routerLinkActiveOptions]="{ exact: false }"
+        >
+          <mat-icon matListIcon>
+            <fa-icon icon="calculator" size="sm"></fa-icon>
+          </mat-icon>
+          <a matLine #accounting>{{ 'labels.menus.Accounting' | translate }}</a>
+        </mat-list-item>
+        <mat-list-item
           [routerLink]="['/accounting/journal-entries/frequent-postings']"
           [matTooltipPosition]="tooltipPosition"
           matTooltip="{{ 'tooltips.Frequent Postings' | translate }}"

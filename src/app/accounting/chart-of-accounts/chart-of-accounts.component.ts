@@ -39,6 +39,8 @@ import { GlAccountTreeService } from './gl-account-tree.service';
 import { PopoverService } from '../../configuration-wizard/popover/popover.service';
 import { ConfigurationWizardService } from '../../configuration-wizard/configuration-wizard.service';
 import { TreeControlService } from 'app/shared/common-logic/tree-control.service';
+import { AlertService } from '../../core/alert/alert.service';
+import { AccountCreationSuccessService } from './account-creation-success.service';
 import { MatButtonToggleGroup, MatButtonToggle } from '@angular/material/button-toggle';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { MatButton, MatIconButton } from '@angular/material/button';
@@ -133,7 +135,9 @@ export class ChartOfAccountsComponent implements AfterViewInit, OnInit {
     private router: Router,
     private treeControlService: TreeControlService,
     private configurationWizardService: ConfigurationWizardService,
-    private popoverService: PopoverService
+    private popoverService: PopoverService,
+    private alertService: AlertService,
+    private accountCreationSuccessService: AccountCreationSuccessService
   ) {
     this.route.data.subscribe((data: { chartOfAccounts: any }) => {
       this.glAccountData = data.chartOfAccounts;
@@ -152,6 +156,33 @@ export class ChartOfAccountsComponent implements AfterViewInit, OnInit {
       this.nestedTreeDataSource.data = glAccountTreeData;
       this.nestedTreeControl.expand(this.nestedTreeDataSource.data[0]);
       this.nestedTreeControl.dataNodes = glAccountTreeData;
+    });
+
+    // Check for account creation success and show success message
+    // The service now handles localStorage persistence automatically
+    if (this.accountCreationSuccessService.isAccountCreated()) {
+      setTimeout(() => {
+        this.alertService.alert({
+          type: 'Success',
+          message: 'User Created Successfully'
+        });
+        // Clear the success state after showing the message
+        this.accountCreationSuccessService.clearSuccessState();
+      }, 100);
+    }
+
+    // Also subscribe to future changes (for immediate notifications)
+    this.accountCreationSuccessService.accountCreated$.subscribe(wasCreated => {
+      if (wasCreated) {
+        setTimeout(() => {
+          this.alertService.alert({
+            type: 'Success',
+            message: 'User Created Successfully'
+          });
+          // Clear the success state after showing the message
+          this.accountCreationSuccessService.clearSuccessState();
+        }, 100);
+      }
     });
   }
 

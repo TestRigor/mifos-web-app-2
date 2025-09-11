@@ -26,10 +26,11 @@ import {
 } from '@angular/material/tree';
 import { NestedTreeControl } from '@angular/cdk/tree';
 import { UntypedFormControl, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink, NavigationEnd } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 /** rxjs Imports */
-import { of } from 'rxjs';
+import { of, filter } from 'rxjs';
 
 /** Custom Models */
 import { GLAccountNode } from './gl-account-node.model';
@@ -43,6 +44,7 @@ import { MatButtonToggleGroup, MatButtonToggle } from '@angular/material/button-
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatTooltip } from '@angular/material/tooltip';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { STANDALONE_SHARED_IMPORTS } from 'app/standalone-shared.module';
 
 /**
@@ -77,7 +79,8 @@ import { STANDALONE_SHARED_IMPORTS } from 'app/standalone-shared.module';
     MatTreeNodeToggle,
     MatIconButton,
     MatNestedTreeNode,
-    MatTreeNodeOutlet
+    MatTreeNodeOutlet,
+    MatSnackBarModule
   ]
 })
 export class ChartOfAccountsComponent implements AfterViewInit, OnInit {
@@ -133,7 +136,8 @@ export class ChartOfAccountsComponent implements AfterViewInit, OnInit {
     private router: Router,
     private treeControlService: TreeControlService,
     private configurationWizardService: ConfigurationWizardService,
-    private popoverService: PopoverService
+    private popoverService: PopoverService,
+    private snackBar: MatSnackBar
   ) {
     this.route.data.subscribe((data: { chartOfAccounts: any }) => {
       this.glAccountData = data.chartOfAccounts;
@@ -152,6 +156,34 @@ export class ChartOfAccountsComponent implements AfterViewInit, OnInit {
       this.nestedTreeDataSource.data = glAccountTreeData;
       this.nestedTreeControl.expand(this.nestedTreeDataSource.data[0]);
       this.nestedTreeControl.dataNodes = glAccountTreeData;
+    });
+
+    // Check sessionStorage for account creation success
+    if (sessionStorage.getItem('accountCreated') === 'true') {
+      this.snackBar.open('Account Created Successfully', 'Close', {
+        duration: 5000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top'
+      });
+      // Clear the flag after showing the message
+      sessionStorage.removeItem('accountCreated');
+    }
+
+    // Check query parameters for success flag
+    this.route.queryParams.subscribe(params => {
+      if (params['success'] === 'accountCreated') {
+        this.snackBar.open('Account Created Successfully', 'Close', {
+          duration: 5000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top'
+        });
+        // Clean up query parameter
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { success: null },
+          queryParamsHandling: 'merge'
+        });
+      }
     });
   }
 

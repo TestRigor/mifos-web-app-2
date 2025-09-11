@@ -87,10 +87,7 @@ export class ClientFamilyMemberDialogComponent implements OnInit {
         Validators.required
       ],
       qualification: [''],
-      age: [
-        '',
-        Validators.required
-      ],
+      age: [''],
       isDependent: [''],
       relationshipId: [
         '',
@@ -102,12 +99,35 @@ export class ClientFamilyMemberDialogComponent implements OnInit {
       ],
       professionId: [''],
       maritalStatusId: [''],
-      dateOfBirth: [
-        '',
-        Validators.required
-      ]
+      dateOfBirth: ['']
+    });
+
+    // Add custom validation to ensure either age or dateOfBirth is provided
+    this.familyMemberForm.setValidators(this.ageOrDateOfBirthValidator);
+
+    // Subscribe to value changes to update validation
+    this.familyMemberForm.get('age').valueChanges.subscribe(() => {
+      this.familyMemberForm.get('dateOfBirth').updateValueAndValidity();
+    });
+
+    this.familyMemberForm.get('dateOfBirth').valueChanges.subscribe(() => {
+      this.familyMemberForm.get('age').updateValueAndValidity();
     });
   }
+
+  /**
+   * Custom validator to ensure either age or dateOfBirth is provided
+   */
+  ageOrDateOfBirthValidator = (group: UntypedFormGroup) => {
+    const age = group.get('age')?.value;
+    const dateOfBirth = group.get('dateOfBirth')?.value;
+
+    if (!age && !dateOfBirth) {
+      return { ageOrDateOfBirthRequired: true };
+    }
+
+    return null;
+  };
 
   /**
    * Returns Formatted Family Member

@@ -3,6 +3,7 @@ import { Component, OnInit, TemplateRef, ElementRef, ViewChild, AfterViewInit } 
 import { UntypedFormGroup, UntypedFormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 /** Custom Services */
 import { AccountingService } from '../../accounting.service';
@@ -15,6 +16,7 @@ import { GLAccount } from 'app/shared/models/general.model';
 import { GlAccountSelectorComponent } from '../../../shared/accounting/gl-account-selector/gl-account-selector.component';
 import { MatCheckbox } from '@angular/material/checkbox';
 import { CdkTextareaAutosize } from '@angular/cdk/text-field';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { STANDALONE_SHARED_IMPORTS } from 'app/standalone-shared.module';
 
 /**
@@ -28,7 +30,8 @@ import { STANDALONE_SHARED_IMPORTS } from 'app/standalone-shared.module';
     ...STANDALONE_SHARED_IMPORTS,
     GlAccountSelectorComponent,
     MatCheckbox,
-    CdkTextareaAutosize
+    CdkTextareaAutosize,
+    MatSnackBarModule
   ]
 })
 export class CreateGlAccountComponent implements OnInit, AfterViewInit {
@@ -73,7 +76,8 @@ export class CreateGlAccountComponent implements OnInit, AfterViewInit {
     private router: Router,
     private configurationWizardService: ConfigurationWizardService,
     private popoverService: PopoverService,
-    public dialog: MatDialog
+    public dialog: MatDialog,
+    private snackBar: MatSnackBar
   ) {
     this.route.queryParamMap.subscribe((params) => {
       this.accountTypeId = Number(params.get('accountType'));
@@ -164,6 +168,15 @@ export class CreateGlAccountComponent implements OnInit, AfterViewInit {
    */
   submit() {
     this.accountingService.createGlAccount(this.glAccountForm.value).subscribe((response: any) => {
+      // Store success state in sessionStorage
+      sessionStorage.setItem('accountCreated', 'true');
+      
+      this.snackBar.open('Account Created Successfully', 'Close', {
+        duration: 5000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top'
+      });
+      
       if (this.configurationWizardService.showChartofAccounts === true) {
         this.configurationWizardService.showChartofAccounts = false;
         this.openDialog();

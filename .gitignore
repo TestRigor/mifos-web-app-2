@@ -59,4 +59,4 @@ cypress/
 
 src/assets/env.js
 src/environments/.env.ts
-.tr-codegen/data/db
+codeCake/data/db

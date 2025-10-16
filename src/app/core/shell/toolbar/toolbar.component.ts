@@ -56,6 +56,7 @@ import { AuthService } from 'app/zitadel/auth.service';
     ...STANDALONE_SHARED_IMPORTS,
     MatToolbar,
     MatIconButton,
+    MatButton,
     MatTooltip,
     FaIconComponent,
     MatMenuTrigger,

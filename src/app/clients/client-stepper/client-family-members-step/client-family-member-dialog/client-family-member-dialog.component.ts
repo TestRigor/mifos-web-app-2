@@ -102,10 +102,7 @@ export class ClientFamilyMemberDialogComponent implements OnInit {
       ],
       professionId: [''],
       maritalStatusId: [''],
-      dateOfBirth: [
-        '',
-        Validators.required
-      ]
+      dateOfBirth: ['']
     });
   }
 

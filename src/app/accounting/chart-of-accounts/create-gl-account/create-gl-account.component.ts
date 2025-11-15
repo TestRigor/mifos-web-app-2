@@ -164,6 +164,9 @@ export class CreateGlAccountComponent implements OnInit, AfterViewInit {
    */
   submit() {
     this.accountingService.createGlAccount(this.glAccountForm.value).subscribe((response: any) => {
+      // Store success message for display when user navigates back to Chart of Accounts
+      sessionStorage.setItem('glAccountCreated', 'true');
+      
       if (this.configurationWizardService.showChartofAccounts === true) {
         this.configurationWizardService.showChartofAccounts = false;
         this.openDialog();
